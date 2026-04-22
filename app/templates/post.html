@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h1 class="mb-3">{{ post.title }}</h1>
+            <p class="text-muted">Автор: {{post.author}}, {{ post.date.strftime('%d.%m.%Y') }}</p>
+
+            <img src="{{ url_for('static', filename='images/' + post.image_id) }}"
+                 class="img-fluid rounded mb-4" alt="Post Image">
+
+            <div class="mb-5" style="white-space: pre-line;">
+                {{ post.text }}
+            </div>
+
+            <hr>
+
+            <div class="mb-5">
+                <h5>Оставьте комментарий</h5>
+                <form class="mt-3">
+                    <div class="mb-3">
+                        <textarea class="form-control" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Отправить</button>
+                </form>
+            </div>
+
+            <h4 class="mb-4">Комментарии</h4>
+
+            {% for comment in post.comments %}
+                <div class="d-flex mb-4">
+                    <div class="flex-shrink-0">
+                        <img src="https://ui-avatars.com/api/?name={{ comment.author }}&background=random"
+                             class="rounded-circle" width="80" height="80" alt="Avatar">
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5>{{comment.author}} <small class="text-muted"><i>Опубликовано недавно</i></small></h5>
+                        <p>{{ comment.text }}</p>
+
+                        {% if comment.replies %}
+                            {% for reply in comment.replies %}
+                                <div class="d-flex mt-4">
+                                    <div class="flex-shrink-0">
+                                        <img src="https://ui-avatars.com/api/?name={{ reply.author }}&background=0D6EFD&color=fff"
+                                             class="rounded-circle" width="80" height="80" alt="Reply Avatar">
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5>{{reply.author}} <small class="text-muted"><i>В ответ {{comment.author}}</i></small></h5>
+                                        <p>{{ reply.text }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}
