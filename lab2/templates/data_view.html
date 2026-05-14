@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">{{ title }}</h4>
+    </div>
+    <div class="card-body">
+        {% if data %}
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr><th>Ключ</th><th>Значение</th></tr>
+                </thead>
+                <tbody>
+                    {% for key, value in data.items() %}
+                    <tr>
+                        <td class="fw-bold text-secondary">{{ key }}</td>
+                        <td class="text-break"><code>{{ value }}</code></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">Данные отсутствуют.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
