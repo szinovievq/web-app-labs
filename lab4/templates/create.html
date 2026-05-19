@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "macros.html" import render_user_form %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Создание нового пользователя</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ render_user_form(roles, errors, form_data, is_edit=False) }}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

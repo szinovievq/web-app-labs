@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">Просмотр данных пользователя</h4>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0">
+                    <tbody>
+                        <tr>
+                            <th scope="row" class="w-25 bg-light ps-3">Идентификатор (ID)</th>
+                            <td class="ps-3">{{ user.id }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="bg-light ps-3">Логин</th>
+                            <td class="ps-3"><code>{{ user.login }}</code></td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="bg-light ps-3">Фамилия</th>
+                            <td class="ps-3">{{ user.last_name or '—' }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="bg-light ps-3">Имя</th>
+                            <td class="ps-3">{{ user.first_name }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="bg-light ps-3">Отчество</th>
+                            <td class="ps-3">{{ user.middle_name or '—' }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row" class="bg-light ps-3">Название роли</th>
+                            <td class="ps-3"><span class="badge bg-secondary">{{ user.role_name or 'Нет роли' }}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer bg-white">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Назад к списку</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
