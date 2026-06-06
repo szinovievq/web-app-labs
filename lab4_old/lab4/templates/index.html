@@ -26,22 +26,16 @@
                     </td>
                     <td class="text-end pe-3 align-middle">
                         <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('view_user', user_id=user.id) }}" class="btn btn-outline-primary">Просмотр</a>
                             {% if current_user.is_authenticated %}
-                                {% if current_user.role_id == 1 or current_user.id == user.id %}
-                                    <a href="{{ url_for('view_user', user_id=user.id) }}" class="btn btn-outline-primary">Просмотр</a>
-                                {% endif %}
-                                {% if current_user.role_id == 1 or current_user.id == user.id %}
-                                    <a href="{{ url_for('edit_user', user_id=user.id) }}" class="btn btn-outline-warning">Редактирование</a>
-                                {% endif %}
-                                {% if current_user.role_id == 1 %}
-                                    <button type="button" class="btn btn-outline-danger"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteModal"
-                                            data-id="{{ user.id }}"
-                                            data-fio="{{ user.last_name or '' }} {{ user.first_name }} {{ user.middle_name or '' }}">
-                                        Удаление
-                                    </button>
-                                {% endif %}
+                            <a href="{{ url_for('edit_user', user_id=user.id) }}" class="btn btn-outline-warning">Редактирование</a>
+                            <button type="button" class="btn btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-id="{{ user.id }}"
+                                    data-fio="{{ user.last_name or '' }} {{ user.first_name }} {{ user.middle_name or '' }}">
+                                Удаление
+                            </button>
                             {% endif %}
                         </div>
                     </td>
@@ -56,7 +50,7 @@
     </div>
 </div>
 
-{% if current_user.is_authenticated and current_user.role_id == 1 %}
+{% if current_user.is_authenticated %}
 <div class="mt-3">
     <a href="{{ url_for('create_user') }}" class="btn btn-primary">Создание пользователя</a>
 </div>
@@ -85,7 +79,7 @@
 {% endblock %}
 
 {% block scripts %}
-{% if current_user.is_authenticated and current_user.role_id == 1 %}
+{% if current_user.is_authenticated %}
 <script>
     const deleteModal = document.getElementById('deleteModal');
     if (deleteModal) {
@@ -93,8 +87,10 @@
             const button = event.relatedTarget;
             const userId = button.getAttribute('data-id');
             const userFio = button.getAttribute('data-fio');
+
             const modalFioSpan = deleteModal.querySelector('#deleteUserFio');
             const deleteForm = deleteModal.querySelector('#deleteForm');
+
             modalFioSpan.textContent = userFio.trim();
             deleteForm.action = `/users/${userId}/delete`;
         });

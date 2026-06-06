@@ -22,14 +22,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.endpoint == 'index' }}" href="{{ url_for('index') }}">Главная</a>
+                        <a class="nav-link {{ 'active' if request.endpoint == 'index' }}"
+                           href="{{ url_for('index') }}">Главная</a>
                     </li>
                     {% if current_user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.endpoint == 'change_password' }}" href="{{ url_for('change_password') }}">Изменить пароль</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.endpoint == 'reports.visit_logs' }}" href="{{ url_for('reports.visit_logs') }}">Журнал посещений</a>
+                        <a class="nav-link {{ 'active' if request.endpoint == 'change_password' }}"
+                           href="{{ url_for('change_password') }}">Изменить пароль</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -40,7 +39,8 @@
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.endpoint == 'login' }}" href="{{ url_for('login') }}">Войти</a>
+                        <a class="nav-link {{ 'active' if request.endpoint == 'login' }}"
+                           href="{{ url_for('login') }}">Войти</a>
                     </li>
                     {% endif %}
                 </ul>

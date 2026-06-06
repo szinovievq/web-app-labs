@@ -1,19 +1,13 @@
 import os
 import re
 import sqlite3
-from functools import wraps
-from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, g
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-
-from reports import reports_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super-secret-key-12345'
 app.config['DATABASE'] = os.path.join(app.root_path, 'database.db')
-
-app.register_blueprint(reports_bp)
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
@@ -37,95 +31,20 @@ def get_db_conn():
 
 def init_db():
     conn = get_db_conn()
+    table_check = conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
+    ).fetchone()
 
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS roles (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE
-        )
-    ''')
+    if not table_check:
+        with app.open_resource('schema.sql', mode='r', encoding='utf-8') as f:
+            conn.cursor().executescript(f.read())
+        conn.commit()
 
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            login TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            last_name TEXT,
-            first_name TEXT NOT NULL,
-            middle_name TEXT,
-            role_id INTEGER REFERENCES roles(id)
-        )
-    ''')
-
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS visit_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            path VARCHAR(100) NOT NULL,
-            user_id INTEGER NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-        )
-    ''')
-
-    conn.execute("INSERT OR IGNORE INTO roles (id, name) VALUES (1, 'Администратор')")
-    conn.execute("INSERT OR IGNORE INTO roles (id, name) VALUES (2, 'Пользователь')")
-
-    admin = conn.execute("SELECT id FROM users WHERE login = 'admin'").fetchone()
-    if not admin:
-        admin_hash = generate_password_hash('Admin12345')
-        conn.execute('''
-            INSERT INTO users (login, password_hash, first_name, role_id)
-            VALUES (?, ?, ?, ?)
-        ''', ('admin', admin_hash, 'Администратор', 1))
-    else:
-        correct_hash = generate_password_hash('Admin12345')
-        conn.execute('UPDATE users SET password_hash = ? WHERE login = ?', (correct_hash, 'admin'))
-
+    correct_hash = generate_password_hash('Admin12345')
+    conn.execute('UPDATE users SET password_hash = ? WHERE login = ?', (correct_hash, 'admin'))
     conn.commit()
     conn.close()
 
-def check_rights(required_role=None):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if not current_user.is_authenticated:
-                flash('Для выполнения этого действия необходимо авторизоваться.', 'danger')
-                return redirect(url_for('login'))
-
-            if required_role == 'admin':
-                if current_user.role_id != 1:
-                    flash('У вас недостаточно прав для доступа к данной странице.', 'danger')
-                    return redirect(url_for('index'))
-
-            elif required_role == 'user':
-                if current_user.role_id not in [1, 2]:
-                    flash('У вас недостаточно прав для доступа к данной странице.', 'danger')
-                    return redirect(url_for('index'))
-
-            elif required_role == 'self_or_admin':
-                user_id = kwargs.get('user_id')
-                if current_user.role_id != 1 and (user_id is None or current_user.id != user_id):
-                    flash('У вас недостаточно прав для доступа к данной странице.', 'danger')
-                    return redirect(url_for('index'))
-
-            return func(*args, **kwargs)
-
-        return wrapper
-
-    return decorator
-
-@app.before_request
-def log_visit():
-    if request.endpoint and request.endpoint.startswith('reports'):
-        return
-    if request.endpoint in ['static', 'favicon']:
-        return
-    path = request.path
-    user_id = current_user.id if current_user.is_authenticated else None
-    conn = get_db_conn()
-    conn.execute('INSERT INTO visit_logs (path, user_id) VALUES (?, ?)', (path, user_id))
-    conn.commit()
-    conn.close()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -135,6 +54,7 @@ def load_user(user_id):
     if res:
         return User(res['id'], res['login'], res['role_id'])
     return None
+
 
 def validate_password(password):
     errors = []
@@ -148,9 +68,11 @@ def validate_password(password):
         errors.append("Пароль должен содержать минимум одну цифру.")
     if re.search(r'\s', password):
         errors.append("Пароль не должен содержать пробелов.")
+
     allowed_chars = r"A-Za-zА-Яа-яЁё0-9~!?@#\$%^&*\_\-\+\(\)\[\]\{\}><\/\\\|\"'\.,:;"
     if not re.match(rf'^[{allowed_chars}]+$', password):
         errors.append("Пароль содержит недопустимые символы.")
+
     return errors
 
 
@@ -209,7 +131,6 @@ def logout():
 
 
 @app.route('/users/<int:user_id>')
-@check_rights('self_or_admin')
 def view_user(user_id):
     conn = get_db_conn()
     user_row = conn.execute('''
@@ -226,7 +147,7 @@ def view_user(user_id):
 
 
 @app.route('/users/create', methods=['GET', 'POST'])
-@check_rights('admin')
+@login_required
 def create_user():
     conn = get_db_conn()
     roles = conn.execute('SELECT id, name FROM roles').fetchall()
@@ -285,7 +206,7 @@ def create_user():
 
 
 @app.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
-@check_rights('self_or_admin')
+@login_required
 def edit_user(user_id):
     conn = get_db_conn()
     user_row = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
@@ -317,11 +238,7 @@ def edit_user(user_id):
 
         if not errors:
             try:
-                if current_user.role_id != 1:
-                    r_id = user_row['role_id']
-                else:
-                    r_id = int(form_data['role_id']) if form_data['role_id'] else None
-
+                r_id = int(form_data['role_id']) if form_data['role_id'] else None
                 conn.execute('''
                     UPDATE users 
                     SET last_name = ?, first_name = ?, middle_name = ?, role_id = ?
@@ -338,12 +255,11 @@ def edit_user(user_id):
             flash('Пожалуйста, исправьте ошибки в форме.', 'danger')
 
     conn.close()
-    return render_template('edit.html', roles=roles, errors=errors, form_data=form_data, user_id=user_id,
-                           is_admin=(current_user.role_id == 1))
+    return render_template('edit.html', roles=roles, errors=errors, form_data=form_data, user_id=user_id)
 
 
 @app.route('/users/<int:user_id>/delete', methods=['POST'])
-@check_rights('admin')
+@login_required
 def delete_user(user_id):
     conn = get_db_conn()
     user_row = conn.execute('SELECT id FROM users WHERE id = ?', (user_id,)).fetchone()

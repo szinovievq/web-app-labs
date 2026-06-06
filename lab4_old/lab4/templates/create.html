@@ -5,12 +5,12 @@
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card shadow">
-            <div class="card-header bg-warning text-dark">
-                <h4 class="mb-0">Редактирование пользователя</h4>
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Создание нового пользователя</h4>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ url_for('edit_user', user_id=user_id) }}">
-                    {{ render_user_form(roles, errors, form_data, is_edit=True, is_admin=is_admin) }}
+                <form method="POST">
+                    {{ render_user_form(roles, errors, form_data, is_edit=False) }}
                 </form>
             </div>
         </div>

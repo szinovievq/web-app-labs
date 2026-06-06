@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Статистика посещений по пользователям</h4>
+        <a href="{{ url_for('reports.export_users_csv') }}" class="btn btn-sm btn-success">Экспорт в CSV</a>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" class="ps-3">№</th>
+                    <th scope="col">Пользователь</th>
+                    <th scope="col">Количество посещений</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in stats %}
+                <tr>
+                    <td class="ps-3 align-middle">{{ loop.index }}</td>
+                    <td class="align-middle">
+                        {% if stat.id %}
+                            {{ stat.last_name or '' }} {{ stat.first_name or '' }} {{ stat.middle_name or '' }}
+                        {% else %}
+                            Неаутентифицированный пользователь
+                        {% endif %}
+                    </td>
+                    <td class="align-middle">{{ stat.visits }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="text-center py-4 text-muted">Нет данных.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('reports.visit_logs') }}" class="btn btn-secondary">Назад к журналу</a>
+    </div>
+</div>
+{% endblock %}

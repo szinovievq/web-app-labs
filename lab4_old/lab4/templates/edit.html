@@ -10,7 +10,7 @@
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('edit_user', user_id=user_id) }}">
-                    {{ render_user_form(roles, errors, form_data, is_edit=True, is_admin=is_admin) }}
+                    {{ render_user_form(roles, errors, form_data, is_edit=True) }}
                 </form>
             </div>
         </div>
